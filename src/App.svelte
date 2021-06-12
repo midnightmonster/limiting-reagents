@@ -1,34 +1,59 @@
 <script>
-import {parseMolecules, stoich, optimumFor} from './chemistry'
+import {parseMolecules, stoich, optimumFor, balanced} from './chemistry'
 import Formula from './Formula.svelte'
 import Molecule from './Molecule.svelte';
 
+const getInputs = ()=>[200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200]
+const custom = {name:"Custom",reactants:"",products:"",inputs:getInputs()}
 const reactions = [
-	{name:"Make water",reactants:"2 H2 + 1 O2",products:"2 H2O"},
-	{name:"Make ammonia",reactants:"1 N2 + 3 H2",products:"2 NH3"},
-	{name:"Combust methane",reactants:"1 CH4 + 2 O2",products:"1 CO2 + 2 H2O",icon:"🔥"},
-	{name:"Custom",reactants:"HCl + NaOH",products:"H2O + NaCl",custom:true}
+	{name:"Make water",reactants:"2 H2 + 1 O2",products:"2 H2O",inputs:getInputs()},
+	{name:"Make ammonia",reactants:"1 N2 + 3 H2",products:"2 NH3",inputs:getInputs()},
+	{name:"Combust methane",reactants:"1 CH4 + 2 O2",products:"1 CO2 + 2 H2O",inputs:getInputs()},
+	{name:"Neutralize acid & base",reactants:"HCl + NaOH",products:"H2O + NaCl",inputs:getInputs()},
+	custom
 ]
 const maxInput = 1000
 let maxOutput = maxInput
-let reaction = reactions[0], reactants, products, _reactants, _products, inputs, outputHtmlFor, scaleCss, outputs, parseError
-$:{
-	_reactants = parseMolecules(reaction.reactants);
-	_products = parseMolecules(reaction.products);
-	if(_reactants.length && (!reaction.inputs || reaction.inputs.length != _reactants.length)){
-		reaction.inputs = _reactants.map(r=>200)
+let reaction = reactions[0]
+let s_reactants, _reactants, reactants=[],
+		s_products,  _products,  products=[]
+let inputs, outputHtmlFor, scaleCss, outputs, error
+
+const setCustom = ()=>{
+	console.log('setCustom')
+	if(reaction !== custom && (s_reactants != reaction.reactants || s_products != reaction.products)){
+		console.log("setting custom")
+		custom.reactants = s_reactants
+		custom.products = s_products
+		custom.inputs = reaction.inputs
+		reaction = custom
 	}
+	return true
+}
+
+$:{
+	s_reactants = reaction.reactants
+	s_products = reaction.products
+	inputs = reaction.inputs
+	console.log("setting strings 'cause reaction changed")
+}
+
+$:{
+	_reactants = parseMolecules(s_reactants);
+	_products = parseMolecules(s_products);
+
 	if(_reactants.length && _products.length){
-		parseError = false
-		reactants = _reactants
-		products = _products
-		outputHtmlFor = reactants.map((_,i)=>`input${i}`).join(' ')
-		maxOutput = Math.max(...stoich(reactants, products, reactants.map(r=>maxInput)))
+		error = balanced(_reactants,_products) ? false : {global:"Reaction is not balanced"}
+		if(!error){
+			reactants = _reactants
+			products = _products
+			outputHtmlFor = reactants.map((_,i)=>`input${i}`).join(' ')
+			maxOutput = Math.max(...stoich(reactants, products, reactants.map(r=>maxInput)))
+		}
 	} else {
-		parseError = true
+		error = true
 	}
 	scaleCss = maxOutput > maxInput ? `--outputScale:1;--inputScale:${(maxInput/maxOutput).toFixed(3)}` : `--outputScale:${(maxOutput/maxInput).toFixed(3)};--inputScale:1;`
-	inputs = reaction.inputs
 }
 $:{
 	outputs = stoich(reactants,products,inputs);
@@ -43,18 +68,15 @@ const htmlOptimum = (optimum,value)=>(optimum > maxInput && value==maxInput) ? m
 			<option value={r}>{r.name}</option>
 		{/each}
 	</select>
-	<Formula f={_reactants} /> → <Formula f={_products} />
+	<span class="custom">
+		<input bind:value={s_reactants} class:error={!_reactants.length} on:input={reaction != custom && setCustom} /> → <input bind:value={s_products} class:error={!_products.length} on:input={reaction != custom && setCustom} />
+	</span>
 </div>
-{#if reaction.custom}
-	<div class="custom">
-		<input bind:value={reaction.reactants} class:error={!_reactants.length} /> → <input bind:value={reaction.products} class:error={!_products.length} />
-		<span title="You have to write the reaction formula correctly. This tool doesn't know if you're wrong!">ℹ️</span>
-	</div>
-{/if}
-<div class="cols" class:inactive={parseError}>
+<div class="cols">
 	<fieldset>
 		<legend>Before</legend>
-		<div class="meters">
+		<Formula f={_reactants} />
+		<div class="meters" class:inactive={error}>
 			{#each reactants as r, i}
 				<div class="labeled-meter">
 					<div class="meter-container">
@@ -74,10 +96,11 @@ const htmlOptimum = (optimum,value)=>(optimum > maxInput && value==maxInput) ? m
 			{/each}
 		</div>
 	</fieldset>
-	<big>{#if reaction.icon}{reaction.icon}<br />{/if}→</big>
+	<big class:inactive={error}>→</big>
 	<fieldset>
 		<legend>After</legend>
-		<div class="meters">
+		<Formula f={_products} />
+		<div class="meters" class:inactive={error}>
 			{#each products as p, i}
 				<div class="labeled-meter">
 					<div class="meter-container">
@@ -91,24 +114,46 @@ const htmlOptimum = (optimum,value)=>(optimum > maxInput && value==maxInput) ? m
 			{/each}
 		</div>
 	</fieldset>
+	{#if error?.global}
+		<p class="error">
+			{error.global}
+		</p>
+	{/if}
 </div>
 <p>By <a href="https://letterblock.com/">Joshua Paine</a>. <a href="https://github.com/midnightmonster/limiting-reagents">Source code available</a>.</p>
 </main>
 
 <style>
+
+main {
+	display: inline-flex;
+	flex-direction: column;
+	align-items: stretch;
+	background:#f5f5f5;
+}
 select {
-	margin-right:1em;
+	margin-right:0.4em;
 }
 .custom input {
   width: 150px;
 }
-.custom span {
-	cursor:help;
+p.error {
+	background: red;
+	color: white;
+	position:absolute;
+	left:50%;
+	top:50%;
+	transform: translate(-50%,-50%);
+	padding: 0.2em 1em;
+	margin:0;
+	border-radius: 2em;
 }
 .cols {
 	display:flex;
 	flex-direction: row;
 	align-items: center;
+	justify-content:space-between;
+	position:relative;
 }
 .inactive {
 	pointer-events: none;
@@ -153,9 +198,15 @@ label {
 	display:block;
 	text-align: center;
 }
-input, output {
-	width:70px;
+.meters input, .meters output {
+	width:75px;
 	display: inline-block;
+	margin-right:3px;
+}
+.meters output {
+	text-align:center;
+	padding-left:0;
+	padding-right:0;
 }
 input.error {
 	border-color: red;

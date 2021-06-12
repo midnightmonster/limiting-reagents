@@ -89,19 +89,27 @@ const ATOMIC_WEIGHTS = {
 function moleculeMass(mol){
   return mol.map(el=>el.sub*ATOMIC_WEIGHTS[el.el]).reduce((a,b)=>a+b)
 }
+export function balanced(a,b){
+  // Check for balance conveniently using mass, hopefully avoiding floating point precision issues
+  const aMass = a.map(m=>Math.round(m.unitMass * 10_000) * m.n).reduce((a,b)=>a+b)
+  const bMass = b.map(m=>Math.round(m.unitMass * 10_000) * m.n).reduce((a,b)=>a+b)
+  return aMass == bMass
+}
 
 export function parseMolecules(str){
   try {
     return str.replace(/\s+/g,'').split('+').map(nMolStr=>{
       const [,n,molStr] = /^(\d*)([A-Za-z0-9]+)$/.exec(nMolStr.trim())
       const mol = [...molStr.matchAll(/([A-Z][a-z]?)(\d*)/g)].map(([_,el,sub])=>{
-        if(!ATOMIC_WEIGHTS[el]) throw new Error("Unknown element");
+        if(!ATOMIC_WEIGHTS[el]) throw {knownErr:`Unknown element ${el}`};
         return {el,sub:1*(sub||'1')}
       })
       return {n:1*(n||'1'),mol,unitMass:moleculeMass(mol)}
     })
-  } catch {
-    return []
+  } catch(e) {
+    const out = []
+    out.error = e.knownErr || "Could not understand expression";
+    return out
   }
 }
 export function stoich(reactants,products,inputs){

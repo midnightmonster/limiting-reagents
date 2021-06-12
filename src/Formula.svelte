@@ -6,7 +6,7 @@ export let f
 {#each f as nMol, i}
   {#if i}<span class="plus">+</span>{/if}<Molecule n={nMol.n} mol={nMol.mol} />
 {:else}
-  ?
+  {#if f.error}<span class="error">{f.error}</span>{:else}?{/if}
 {/each}
 </span>
 
@@ -17,4 +17,5 @@ export let f
   .plus {
     margin:0 0.2em;
   }
+  .error { color: red; }
 </style>
