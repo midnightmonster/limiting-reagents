@@ -10,18 +10,22 @@ const reactions = [
 	{name:"Custom",reactants:"HCl + NaOH",products:"H2O + NaCl",custom:true}
 ]
 const maxInput = 1000
-let reaction = reactions[0], reactants, products, inputs, maxOutput, outputHtmlFor, scaleCss, outputs
+let maxOutput = maxInput
+let reaction = reactions[0], reactants, products, _reactants, _products, inputs, outputHtmlFor, scaleCss, outputs, parseError
 $:{
-	reactants = parseMolecules(reaction.reactants);
-	products = parseMolecules(reaction.products);
-	if(!reaction.inputs || reaction.inputs.length != reactants.length){
-		reaction.inputs = reactants.map(r=>200)
+	_reactants = parseMolecules(reaction.reactants);
+	_products = parseMolecules(reaction.products);
+	if(_reactants.length && (!reaction.inputs || reaction.inputs.length != _reactants.length)){
+		reaction.inputs = _reactants.map(r=>200)
 	}
-	if(reactants.length && products.length){
+	if(_reactants.length && _products.length){
+		parseError = false
+		reactants = _reactants
+		products = _products
 		outputHtmlFor = reactants.map((_,i)=>`input${i}`).join(' ')
 		maxOutput = Math.max(...stoich(reactants, products, reactants.map(r=>maxInput)))
 	} else {
-		maxOutput = maxInput
+		parseError = true
 	}
 	scaleCss = maxOutput > maxInput ? `--outputScale:1;--inputScale:${(maxInput/maxOutput).toFixed(3)}` : `--outputScale:${(maxOutput/maxInput).toFixed(3)};--inputScale:1;`
 	inputs = reaction.inputs
@@ -39,15 +43,15 @@ const htmlOptimum = (optimum,value)=>(optimum > maxInput && value==maxInput) ? m
 			<option value={r}>{r.name}</option>
 		{/each}
 	</select>
-	<Formula f={reactants} /> → <Formula f={products} />
+	<Formula f={_reactants} /> → <Formula f={_products} />
 </div>
 {#if reaction.custom}
 	<div class="custom">
-		<input bind:value={reaction.reactants} /> → <input bind:value={reaction.products} />
+		<input bind:value={reaction.reactants} class:error={!_reactants.length} /> → <input bind:value={reaction.products} class:error={!_products.length} />
 		<span title="You have to write the reaction formula correctly. This tool doesn't know if you're wrong!">ℹ️</span>
 	</div>
 {/if}
-<div class="cols">
+<div class="cols" class:inactive={parseError}>
 	<fieldset>
 		<legend>Before</legend>
 		<div class="meters">
@@ -106,6 +110,10 @@ select {
 	flex-direction: row;
 	align-items: center;
 }
+.inactive {
+	pointer-events: none;
+	opacity:0.5;
+}
 big { font-size: 3em; font-weight: bold; margin:0 0.5em; }
 .meters {
 	display: flex;
@@ -148,5 +156,8 @@ label {
 input, output {
 	width:70px;
 	display: inline-block;
+}
+input.error {
+	border-color: red;
 }
 </style>
