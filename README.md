@@ -1,27 +1,16 @@
-*Looking for a shareable component template? Go here --> [sveltejs/component-template](https://github.com/sveltejs/component-template)*
+# Limiting Reagant Simulator
 
----
+## License
 
-# svelte app
+Free to use and adapt under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). Also, feel free to read and borrow any techniques that are useful. If you for some reason have some commercial use for this, get in touch. 
 
-This is a project template for [Svelte](https://svelte.dev) apps. It lives at https://github.com/sveltejs/template.
-
-To create a new project based on this template using [degit](https://github.com/Rich-Harris/degit):
-
-```bash
-npx degit sveltejs/template svelte-app
-cd svelte-app
-```
-
-*Note that you will need to have [Node.js](https://nodejs.org) installed.*
-
-
-## Get started
+## Developing
 
 Install the dependencies...
 
 ```bash
-cd svelte-app
+git clone git@github.com:midnightmonster/limiting-reagents.git
+cd limiting-reagents
 npm install
 ```
 
@@ -31,13 +20,13 @@ npm install
 npm run dev
 ```
 
-Navigate to [localhost:5000](http://localhost:5000). You should see your app running. Edit a component file in `src`, save it, and reload the page to see your changes.
+Navigate to [localhost:5000](http://localhost:5000). You should see the app running.
 
 By default, the server will only respond to requests from localhost. To allow connections from other computers, edit the `sirv` commands in package.json to include the option `--host 0.0.0.0`.
 
-If you're using [Visual Studio Code](https://code.visualstudio.com/) we recommend installing the official extension [Svelte for VS Code](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode). If you are using other editors you may need to install a plugin in order to get syntax highlighting and intellisense.
+If you're using [Visual Studio Code](https://code.visualstudio.com/) I recommend installing the official extension [Svelte for VS Code](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode). If you are using other editors you may need to install a plugin in order to get syntax highlighting and intellisense.
 
-## Building and running in production mode
+## Production build, run, deploy
 
 To create an optimised version of the app:
 
@@ -45,34 +34,13 @@ To create an optimised version of the app:
 npm run build
 ```
 
-You can run the newly built app with `npm run start`. This uses [sirv](https://github.com/lukeed/sirv), which is included in your package.json's `dependencies` so that the app will work when you deploy to platforms like [Heroku](https://heroku.com).
+You can run the newly built app with `npm run start`. This uses [sirv](https://github.com/lukeed/sirv), which is included in the package.json's `dependencies` so that the app will work if you deploy to platforms like [Heroku](https://heroku.com).
 
+## Deploy
 
-## Single-page app mode
+You can **deploy to netlify** by just dragging the `public` folder into a netlify deploy drop zone after a build.
 
-By default, sirv will only respond to requests that match files in `public`. This is to maximise compatibility with static fileservers, allowing you to deploy your app anywhere.
-
-If you're building a single-page app (SPA) with multiple routes, sirv needs to be able to respond to requests for *any* path. You can make it so by editing the `"start"` command in package.json:
-
-```js
-"start": "sirv public --single"
-```
-
-## Using TypeScript
-
-This template comes with a script to set up a TypeScript development environment, you can run it immediately after cloning the template with:
-
-```bash
-node scripts/setupTypeScript.js
-```
-
-Or remove the script via:
-
-```bash
-rm scripts/setupTypeScript.js
-```
-
-## Deploying to the web
+## More deployment options (suggestions from Svelte template, haven't tried)
 
 ### With [Vercel](https://vercel.com)
 
