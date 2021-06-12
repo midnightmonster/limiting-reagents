@@ -77,6 +77,7 @@ const htmlOptimum = (optimum,value)=>(optimum > maxInput && value==maxInput) ? m
 		</div>
 	</fieldset>
 </div>
+<p>By <a href="https://letterblock.com/">Joshua Paine</a>. <a href="https://github.com/midnightmonster/limiting-reagents">Source code available</a>.</p>
 </main>
 
 <style>
