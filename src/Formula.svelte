@@ -5,6 +5,8 @@ export let f
 <span class="formula">
 {#each f as nMol, i}
   {#if i}<span class="plus">+</span>{/if}<Molecule n={nMol.n} mol={nMol.mol} />
+{:else}
+  ?
 {/each}
 </span>
 

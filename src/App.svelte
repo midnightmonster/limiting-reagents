@@ -6,18 +6,23 @@ import Molecule from './Molecule.svelte';
 const reactions = [
 	{name:"Make water",reactants:"2 H2 + 1 O2",products:"2 H2O"},
 	{name:"Make ammonia",reactants:"1 N2 + 3 H2",products:"2 NH3"},
-	{name:"Combust methane",reactants:"1 CH4 + 2 O2",products:"1 CO2 + 2 H2O"},
+	{name:"Combust methane",reactants:"1 CH4 + 2 O2",products:"1 CO2 + 2 H2O",icon:"🔥"},
+	{name:"Custom",reactants:"HCl + NaOH",products:"H2O + NaCl",custom:true}
 ]
-const maxInput = 100
+const maxInput = 1000
 let reaction = reactions[0], reactants, products, inputs, maxOutput, outputHtmlFor, scaleCss, outputs
 $:{
 	reactants = parseMolecules(reaction.reactants);
 	products = parseMolecules(reaction.products);
-	if(!reaction.inputs){
-		reaction.inputs = reactants.map(r=>0)
+	if(!reaction.inputs || reaction.inputs.length != reactants.length){
+		reaction.inputs = reactants.map(r=>200)
 	}
-	outputHtmlFor = reactants.map((_,i)=>`input${i}`).join(' ')
-	maxOutput = Math.max(...stoich(reactants, products, reactants.map(r=>maxInput)))
+	if(reactants.length && products.length){
+		outputHtmlFor = reactants.map((_,i)=>`input${i}`).join(' ')
+		maxOutput = Math.max(...stoich(reactants, products, reactants.map(r=>maxInput)))
+	} else {
+		maxOutput = maxInput
+	}
 	scaleCss = maxOutput > maxInput ? `--outputScale:1;--inputScale:${(maxInput/maxOutput).toFixed(3)}` : `--outputScale:${(maxOutput/maxInput).toFixed(3)};--inputScale:1;`
 	inputs = reaction.inputs
 }
@@ -36,6 +41,12 @@ const htmlOptimum = (optimum,value)=>(optimum > maxInput && value==maxInput) ? m
 	</select>
 	<Formula f={reactants} /> → <Formula f={products} />
 </div>
+{#if reaction.custom}
+	<div class="custom">
+		<input bind:value={reaction.reactants} /> → <input bind:value={reaction.products} />
+		<span title="You have to write the reaction formula correctly. This tool doesn't know if you're wrong!">ℹ️</span>
+	</div>
+{/if}
 <div class="cols">
 	<fieldset>
 		<legend>Before</legend>
@@ -59,7 +70,7 @@ const htmlOptimum = (optimum,value)=>(optimum > maxInput && value==maxInput) ? m
 			{/each}
 		</div>
 	</fieldset>
-	<big>→</big>
+	<big>{#if reaction.icon}{reaction.icon}<br />{/if}→</big>
 	<fieldset>
 		<legend>After</legend>
 		<div class="meters">
@@ -83,6 +94,12 @@ const htmlOptimum = (optimum,value)=>(optimum > maxInput && value==maxInput) ? m
 <style>
 select {
 	margin-right:1em;
+}
+.custom input {
+  width: 150px;
+}
+.custom span {
+	cursor:help;
 }
 .cols {
 	display:flex;
