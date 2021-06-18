@@ -96,6 +96,10 @@ const htmlOptimum = (optimum,value)=>(optimum > maxInput && value==maxInput) ? m
 </main>
 
 <style>
+main {
+	display:inline-flex;
+	flex-direction: column;
+}
 select {
 	margin-right:1em;
 }
